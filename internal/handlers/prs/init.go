@@ -27,6 +27,16 @@ func InitPRSHandlers(r *gin.Engine, manager *postgres.Manager) {
 }
 
 func CreatePR(c *gin.Context, manager *postgres.Manager) {
+	role, exists := c.Get("role")
+	if !exists || role != "admin" {
+		var error reqres.ErrorResponse
+		error.Error.Code = dbErrors.CodeTeamNotFound
+		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
+
+		c.JSON(http.StatusForbidden, error)
+		return
+	}
+
 	var req reqres.PullRequestCreateRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -54,6 +64,16 @@ func CreatePR(c *gin.Context, manager *postgres.Manager) {
 }
 
 func MergePR(c *gin.Context, manager *postgres.Manager) {
+	role, exists := c.Get("role")
+	if !exists || role != "admin" {
+		var error reqres.ErrorResponse
+		error.Error.Code = dbErrors.CodeTeamNotFound
+		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
+
+		c.JSON(http.StatusForbidden, error)
+		return
+	}
+
 	var req reqres.PullRequestMergeRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -76,6 +96,16 @@ func MergePR(c *gin.Context, manager *postgres.Manager) {
 }
 
 func ReassignAuthor(c *gin.Context, manager *postgres.Manager) {
+	role, exists := c.Get("role")
+	if !exists || role != "admin" {
+		var error reqres.ErrorResponse
+		error.Error.Code = dbErrors.CodeTeamNotFound
+		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
+
+		c.JSON(http.StatusForbidden, error)
+		return
+	}
+
 	var req reqres.PullRequestReassignRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
