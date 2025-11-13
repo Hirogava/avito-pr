@@ -49,7 +49,7 @@ func SetIsActive(c *gin.Context, manager *postgres.Manager) {
 			var error reqres.ErrorResponse
 			error.Error.Code = dbErrors.CodeTeamNotFound
 			error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
-			c.JSON(http.StatusBadRequest, error)
+			c.JSON(http.StatusNotFound, error)
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -72,7 +72,7 @@ func GetReview(c *gin.Context, manager *postgres.Manager) {
 		var error reqres.ErrorResponse
 		error.Error.Code = dbErrors.CodeTeamNotFound
 		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
-		c.JSON(http.StatusBadRequest, error)
+		c.JSON(http.StatusNotFound, error)
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}

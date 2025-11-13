@@ -5,6 +5,7 @@ import (
 
 	"github.com/Hirogava/avito-pr/internal/config/logger"
 	"github.com/Hirogava/avito-pr/internal/handlers/auth"
+	"github.com/Hirogava/avito-pr/internal/handlers/prs"
 	"github.com/Hirogava/avito-pr/internal/handlers/team"
 	"github.com/Hirogava/avito-pr/internal/handlers/users"
 	"github.com/Hirogava/avito-pr/internal/repository/postgres"
@@ -35,6 +36,9 @@ func CreateRouter(manager *postgres.Manager) *gin.Engine {
 
 	logger.Logger.Debug("Registering user handlers")
 	users.InitUsersHandlers(r, manager)
+
+	logger.Logger.Debug("Registering PR handlers")
+	prs.InitPRSHandlers(r, manager)
 
 	logger.Logger.Info("HTTP router created successfully")
 	return r
