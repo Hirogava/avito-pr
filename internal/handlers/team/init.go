@@ -1,4 +1,4 @@
-package pr
+package team
 
 import (
 	"net/http"

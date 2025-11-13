@@ -5,6 +5,7 @@ import (
 
 	"github.com/Hirogava/avito-pr/internal/config/logger"
 	"github.com/Hirogava/avito-pr/internal/handlers/auth"
+	"github.com/Hirogava/avito-pr/internal/handlers/team"
 	"github.com/Hirogava/avito-pr/internal/repository/postgres"
 
 	"github.com/gin-contrib/cors"
@@ -27,6 +28,9 @@ func CreateRouter(manager *postgres.Manager) *gin.Engine {
 
 	logger.Logger.Debug("Registering game handlers")
 	auth.InitAuthHandlers(r, manager)
+
+	logger.Logger.Debug("Registering team handlers")
+	team.InitTeamHandlers(r, manager)
 
 	logger.Logger.Info("HTTP router created successfully")
 	return r
