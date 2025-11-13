@@ -46,6 +46,12 @@ type PullRequestShortResponse struct {
 	Status          string `json:"status"`
 }
 
+// PullRequestListResponse - Модель списка PR для ответа API.
+type PullRequestListResponse struct {
+	UserID	  string                     `json:"user_id"`
+	PullRequests []PullRequestShortResponse `json:"pull_requests"`
+}
+
 // ErrorResponse - Модель ошибки для ответа API.
 type ErrorResponse struct {
 	Error struct {

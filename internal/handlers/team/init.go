@@ -21,7 +21,7 @@ func InitTeamHandlers(r *gin.Engine, manager *postgres.Manager) {
 	secureTeam := r.Group("/team")
 	secureTeam.Use(middleware.AuthMiddleware())
 	{
-		team.GET("/get", func(c *gin.Context) {
+		secureTeam.GET("/get", func(c *gin.Context) {
 			GetTeam(c, manager)
 		})
 	}
