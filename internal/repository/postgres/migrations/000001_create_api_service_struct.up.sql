@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS teams (
 
 -- 2. Таблица для пользователей (UserDBModel)
 CREATE TABLE IF NOT EXISTS users (
-    user_id VARCHAR(255) PRIMARY KEY,
+    user_id UUID PRIMARY KEY  DEFAULT (gen_random_uuid()),
     username VARCHAR(255) NOT NULL,
     team_name VARCHAR(255) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE
@@ -64,6 +64,20 @@ CREATE TABLE IF NOT EXISTS pr_reviewers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_reviewer_pr ON pr_reviewers (reviewer_id);
+
+-- 5. Таблица для токенов аутентификации (AuthTokenDBModel)
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
+  token text UNIQUE NOT NULL,
+  expires_at timestamp NOT NULL,
+  created_at timestamp NOT NULL DEFAULT (now()),
+
+  CONSTRAINT fk_token_user
+    FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
 
 -- Дополнительно: Добавление начальных данных для админа
 -- INSERT INTO users (user_id, username, team_name, is_active, is_admin) VALUES ('admin_user', 'System Admin', 'system', TRUE, TRUE) ON CONFLICT DO NOTHING;

@@ -29,3 +29,9 @@ type PullRequestReassignRequest struct {
 	PullRequestID string `json:"pull_request_id" binding:"required"`
 	OldUserID     string `json:"old_reviewer_id" binding:"required"`
 }
+
+// SetAdminRequest - Запрос на установку флага админа пользователя.
+type SetAdminRequest struct {
+	UserID  string `json:"user_id" binding:"required"`
+	IsAdmin bool   `json:"is_admin"`
+}

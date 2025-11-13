@@ -87,12 +87,27 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		role, ok := claims["role"].(string)
+		if !ok || (role != "user" && role != "admin") {
+			logger.Logger.Warn("Insufficient permissions",
+				"method", method,
+				"path", path,
+				"user_id", idString,
+				"ip", c.ClientIP())
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Insufficient permissions",
+			})
+			c.Abort()
+			return
+		}
+
 		logger.Logger.Debug("Authentication successful",
 			"method", method,
 			"path", path,
 			"user_id", idString,
 			"ip", c.ClientIP())
 
+		c.Set("role", role)
 		c.Set("userID", idString)
 		c.Next()
 	}

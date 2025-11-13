@@ -58,23 +58,23 @@ func AddAccessTime() int64 {
 	return time.Now().Add(15 * time.Minute).Unix()
 }
 
-func ValidateRefreshToken(manager *postgres.Manager, userId string) (authModels.RefreshToken, error) {
-	token, err := manager.GetRefreshToken(userId)
+func ValidateRefreshToken(manager *postgres.Manager, userId string) (authModels.RefreshToken, string, error) {
+	token, role, err := manager.GetRefreshToken(userId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return authModels.RefreshToken{}, jwt.ErrTokenExpired
+			return authModels.RefreshToken{}, "", jwt.ErrTokenExpired
 		}
-		return token, err
+		return token, role, err
 	}
 
 	if time.Now().After(token.ExpiredAt) {
 		if err := manager.DeleteRefreshToken(userId, token.Token); err != nil {
-			return authModels.RefreshToken{}, err
+			return authModels.RefreshToken{}, "", err
 		} else {
-			return authModels.RefreshToken{}, jwt.ErrTokenExpired
+			return authModels.RefreshToken{}, "", jwt.ErrTokenExpired
 		}
 	}
-	return token, nil
+	return token, role, nil
 }
 
 func GetClaims(tokenString string) (jwt.MapClaims, error) {
