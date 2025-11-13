@@ -16,7 +16,7 @@ func main() {
 	environment.LoadEnvFile(".env")
 
 	logger.LogInit()
-	logger.Logger.Info("Starting Swifty Gasprom backend server")
+	logger.Logger.Info("Starting Avito-PR backend server")
 
 	dbConnStr := os.Getenv("DB_CONNECT_STRING")
 	if dbConnStr == "" {

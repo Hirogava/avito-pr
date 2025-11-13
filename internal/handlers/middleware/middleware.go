@@ -96,6 +96,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				"ip", c.ClientIP())
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": "Insufficient permissions",
+				"role" : role,
 			})
 			c.Abort()
 			return

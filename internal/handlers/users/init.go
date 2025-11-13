@@ -11,7 +11,14 @@ import (
 )
 
 func InitUsersHandlers(r *gin.Engine, manager *postgres.Manager) {
-	secureUsers := r.Group("/team")
+	users := r.Group("/users")
+	{
+		users.GET("", func(c *gin.Context) {
+			GerUsers(c, manager)
+		})
+	}
+
+	secureUsers := r.Group("/users")
 	secureUsers.Use(middleware.AuthMiddleware())
 	{
 		secureUsers.POST("/setIsActive", func(c *gin.Context) {
@@ -20,6 +27,16 @@ func InitUsersHandlers(r *gin.Engine, manager *postgres.Manager) {
 		secureUsers.GET("/getReview", func(c *gin.Context) {
 			GetReview(c, manager)
 		})
+	}
+}
+
+func GerUsers(c *gin.Context, manager *postgres.Manager) {
+	users, err := manager.GetUsers()
+	switch err {
+		case nil:
+			c.JSON(http.StatusOK, gin.H{"users": users})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }
 

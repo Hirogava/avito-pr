@@ -42,7 +42,7 @@ func Admin(c *gin.Context, manager *postgres.Manager) {
 		return
 	}
 
-	logger.Logger.Debug("Processing login for bank user", "bank_user_id", req.UserID, "ip", c.ClientIP())
+	logger.Logger.Debug("Processing login", "user_id", req.UserID, "ip", c.ClientIP())
 
 	err := manager.SetUserStatus(req.UserID, req.IsAdmin)
 	if err != nil {
@@ -51,10 +51,18 @@ func Admin(c *gin.Context, manager *postgres.Manager) {
 		return
 	}
 
+	var role string
 	c.Set("userID", req.UserID)
+	if req.IsAdmin {
+		c.Set("role", "admin")
+		role = "admin"
+	} else {
+		c.Set("role", "user")
+		role = "user"
+	}
 
 	var refreshToken string
-	token, role, err := tokens.ValidateRefreshToken(manager, req.UserID)
+	token, _, err := tokens.ValidateRefreshToken(manager, req.UserID)
 	if err != nil {
 		if err == jwt.ErrTokenExpired {
 			logger.Logger.Debug("Refresh token expired, generating new one", "user_id", req.UserID)
