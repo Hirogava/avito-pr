@@ -9,6 +9,9 @@ BUILD_PATH := ./bin
 MIGRATIONS_PATH := ./internal/repository/postgres/migrations
 GO_VERSION := 1.24.0
 
+go-test:
+	go test ./...
+
 lint:
 	golangci-lint run ./...
 
