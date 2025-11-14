@@ -54,7 +54,7 @@
    DB_USER=avito_user
    DB_PASSWORD=avito_password
    DB_NAME=avito_pr_db
-   DB_CONNECT_STRING="host=db port=5432 user=avito_user password=avito_password dbname=avito_pr_db sslmode=disable"
+   DB_CONNECT_STRING=postgres://postgres:password@localhost:5432/dbname?sslmode=disable
    SERVER_PORT=:8080
    ```
 
