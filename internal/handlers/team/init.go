@@ -38,6 +38,12 @@ func CreateTeam(c *gin.Context, manager *postgres.Manager) {
 		return
 	}
 
+	if len(req.Members) < 2 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "team must have at least 2 members",
+		})
+	}
+
 	team, err := manager.CreateTeam(req)
 	switch err {
 	case nil:

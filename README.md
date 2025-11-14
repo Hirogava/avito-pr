@@ -39,7 +39,7 @@
 1. **Docker**
 2. **Docker Compose**
 
-### Инструкция по запуску
+### Быстрый запуск
 
 1. **Клонируйте репозиторий:**
    ```bash
@@ -58,17 +58,56 @@
    SERVER_PORT=:8080
    ```
 
-3. **Запустите сервис:**
-   Используйте `docker-compose` для сборки образа, запуска контейнеров (приложение и PostgreSQL) и автоматического применения миграций.
-   ```bash
-   docker-compose up --build -d
-   ```
-   Сервис будет доступен по адресу `http://localhost:8080`.
+3. **Используйте команду `make docker-up`**
 
-4. **Остановка сервиса:**
-   ```bash
-   docker-compose down
-   ```
+4. **Получите доступы:**
+   Для работы с защищенными эндпоинтами (например, `/pullRequest/*`) требуется аутентификация. В качестве примера пользователя с ролью `"admin"` используется следующая модель:
+
+   1. Сделайте запрос на `/users` для получения всех юзеров и проектов (на проекте миграции с сид датой) 
+      **Пример ответа эндпоинта `/users` (GET):**
+      ```json
+      {
+         "users": [
+            {
+                  "user_id": "38c08664-357e-471e-b15b-8ba0547c2e34",
+                  "username": "admin_backend",
+                  "team_name": "backend",
+                  "is_active": true
+            },
+            {
+                  "user_id": "242e8920-deeb-4403-b03e-8430e455556f",
+                  "username": "alice",
+                  "team_name": "backend",
+                  "is_active": true
+            }
+         ]
+      }
+      ```
+
+   2. Сделайте запрос на `/auth/admin` с айди пользователя (одного из) и флагом `is_admin`, если true, то пользователь будет админом и ему доступны все эндпоинты. Вернется с него refresh, access токены, айди пользователя. Access токен в последующем везде нужно вставлять в заголовок Authorization Bearer (реализована кастомная JWT система)
+      **Пример запроса на эндпоинт `/auth/admin` (POST):**
+      ```json
+      {
+         "user_id" : "38c08664-357e-471e-b15b-8ba0547c2e34",
+         "is_admin" : true
+      }
+      ```
+      **Пример ответа эндпоинта `/auth/admin` (POST):**
+      ```json
+      {
+         "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjMxMTQwNDksImlkIjoiMzhjMDg2NjQtMzU3ZS00NzFlLWIxNWItOGJhMDU0N2MyZTM0Iiwicm9sZSI6ImFkbWluIn0.yfuW4qZ9OJXB_o03Hm85p5WJDJAz47rLE9dBOh62RDw",
+         "refresh_token": "f27f7509-13c8-4d86-9da4-fe889e8a4489",
+         "role": "admin",
+         "userID": "38c08664-357e-471e-b15b-8ba0547c2e34"
+      }
+      ```
+
+   3. **Пробуйте :D**
+
+   4. **Остановка сервиса:**
+      ```bash
+      docker-compose down
+      ```
 
 ### Команды `Makefile`
 
