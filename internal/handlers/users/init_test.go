@@ -72,7 +72,7 @@ func TestGerUsersInternalError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create sqlmock: %v", err)
 	}
-	defer db.Close()
+	defer db.Close() //nolint:errcheck
 
 	manager := &postgres.Manager{Conn: db}
 	mock.ExpectQuery(`SELECT username, team_name, user_id, is_active FROM users`).WillReturnError(assertAnError{})
