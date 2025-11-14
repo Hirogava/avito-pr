@@ -1,3 +1,4 @@
+// Package postgres implements the repository interface for PostgreSQL.
 package postgres
 
 import (
@@ -8,12 +9,14 @@ import (
 	"github.com/Hirogava/avito-pr/internal/config/logger"
 )
 
+// Manager - DB Manager
 type Manager struct {
 	Conn *sql.DB
 	WG   *sync.WaitGroup
 	MU   *sync.RWMutex
 }
 
+// NewManager - создание менеджера БД
 func NewManager(driverName string, sourceName string) *Manager {
 	logger.Logger.Debug("Opening database connection", "driver", driverName)
 
@@ -38,10 +41,11 @@ func NewManager(driverName string, sourceName string) *Manager {
 	}
 }
 
+// Close - закрытие соединения с БД
 func (manager *Manager) Close() {
 	if manager.Conn != nil {
 		logger.Logger.Info("Closing database connection")
-		manager.Conn.Close()
+		manager.Conn.Close() //nolint:errcheck
 		manager.Conn = nil
 		logger.Logger.Info("Database connection closed")
 	}

@@ -1,3 +1,4 @@
+// Package main is the entry point of the Avito-PR backend server.
 package main
 
 import (
@@ -13,7 +14,9 @@ import (
 )
 
 func main() {
-	environment.LoadEnvFile(".env")
+	if err := environment.LoadEnvFile(".env"); err != nil {
+		logger.Logger.Fatalf("failed to load .env: %v", err)
+	}
 
 	logger.LogInit()
 	logger.Logger.Info("Starting Avito-PR backend server")
@@ -26,6 +29,7 @@ func main() {
 
 	manager := postgres.NewManager("postgres", dbConnStr)
 	logger.Logger.Info("Database connection established successfully")
+	defer manager.Close()
 
 	logger.Logger.Info("Running database migrations")
 	manager.Migrate()
@@ -41,13 +45,13 @@ func main() {
 	}
 
 	server := &http.Server{
-        Addr:    serverPort,
-        Handler: r,
-        ReadTimeout:  15 * time.Second,
-        WriteTimeout: 15 * time.Second,
-        IdleTimeout:  60 * time.Second,
-    }
+		Addr:         serverPort,
+		Handler:      r,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 
 	logger.Logger.Info("Starting HTTP server", "port", serverPort)
-    shoutdown.Graceful(server, 30*time.Second)
+	shoutdown.Graceful(server, 30*time.Second)
 }

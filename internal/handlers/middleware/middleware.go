@@ -1,3 +1,4 @@
+// Package middleware defines middleware for the application
 package middleware
 
 import (
@@ -11,6 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// AuthMiddleware - миддлвар для проверки роли и токена
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.Method == "OPTIONS" {
@@ -96,7 +98,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				"ip", c.ClientIP())
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": "Insufficient permissions",
-				"role" : role,
+				"role":  role,
 			})
 			c.Abort()
 			return

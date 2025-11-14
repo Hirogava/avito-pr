@@ -1,0 +1,42 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - staticcheck
+    - ineffassign
+    - unused
+    - errcheck
+    - gocyclo
+    - revive
+
+formatters:
+  enable:
+    - gofumpt
+
+linters-settings:
+  gocyclo:
+    min-complexity: 12
+
+  revive:
+    rules:
+      - name: indent-error-flow
+      - name: early-return
+      - name: var-naming
+      - name: package-comments
+
+  gofumpt:
+    simplify: true
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  sort-results: true

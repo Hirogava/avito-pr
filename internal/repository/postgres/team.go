@@ -1,3 +1,4 @@
+// Package postgres implements the repository interface for PostgreSQL.
 package postgres
 
 import (
@@ -8,12 +9,13 @@ import (
 	"github.com/Hirogava/avito-pr/internal/models/reqres"
 )
 
+// CreateTeam - создает новую команду
 func (m *Manager) CreateTeam(req reqres.TeamAddRequest) (*reqres.TeamResponse, error) {
 	tx, err := m.Conn.Begin()
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	var exists bool
 	err = tx.QueryRow(`SELECT EXISTS (SELECT 1 FROM teams WHERE team_name = $1)`, req.TeamName).Scan(&exists)
@@ -54,6 +56,7 @@ func (m *Manager) CreateTeam(req reqres.TeamAddRequest) (*reqres.TeamResponse, e
 	}, nil
 }
 
+// GetTeam - возвращает команду
 func (m *Manager) GetTeam(teamName string) (*reqres.TeamResponse, error) {
 	rows, err := m.Conn.Query(`
 		SELECT user_id, username, is_active
@@ -68,7 +71,7 @@ func (m *Manager) GetTeam(teamName string) (*reqres.TeamResponse, error) {
 
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	var members []reqres.TeamMemberResponse
 	for rows.Next() {

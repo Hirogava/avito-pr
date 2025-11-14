@@ -1,3 +1,4 @@
+// Package postgres implements the repository interface for PostgreSQL.
 package postgres
 
 import (
@@ -12,6 +13,7 @@ import (
 	"github.com/Hirogava/avito-pr/internal/models/types"
 )
 
+// CreatePullRequest - создает PR с двумя случайными ревьюверами
 func (m *Manager) CreatePullRequest(req reqres.PullRequestCreateRequest) (reqres.PullRequestResponse, error) {
 	ctx := context.Background()
 
@@ -42,7 +44,7 @@ func (m *Manager) CreatePullRequest(req reqres.PullRequestCreateRequest) (reqres
 	if err != nil {
 		return reqres.PullRequestResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	var candidates []string
 	for rows.Next() {
@@ -66,7 +68,7 @@ func (m *Manager) CreatePullRequest(req reqres.PullRequestCreateRequest) (reqres
 	if err != nil {
 		return reqres.PullRequestResponse{}, err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO pull_requests (pull_request_id, pull_request_name, author_id, status)
@@ -91,14 +93,15 @@ func (m *Manager) CreatePullRequest(req reqres.PullRequestCreateRequest) (reqres
 	}
 
 	return reqres.PullRequestResponse{
-		PullRequestID:   req.PullRequestID,
-		PullRequestName: req.PullRequestName,
-		AuthorID:        req.AuthorID,
-		Status:          types.PRStatusOpen,
+		PullRequestID:     req.PullRequestID,
+		PullRequestName:   req.PullRequestName,
+		AuthorID:          req.AuthorID,
+		Status:            types.PRStatusOpen,
 		AssignedReviewers: reviewers,
 	}, nil
 }
 
+// MergePullRequest - мержит PR
 func (m *Manager) MergePullRequest(req reqres.PullRequestMergeRequest) (reqres.PullRequestResponse, error) {
 	ctx := context.Background()
 
@@ -132,7 +135,7 @@ func (m *Manager) MergePullRequest(req reqres.PullRequestMergeRequest) (reqres.P
 	if err != nil {
 		return reqres.PullRequestResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	for rows.Next() {
 		var rid string
@@ -148,6 +151,7 @@ func (m *Manager) MergePullRequest(req reqres.PullRequestMergeRequest) (reqres.P
 	return pr, nil
 }
 
+// ReassignPRAuthor - меняет автора PR на нового случайного ревьюера
 func (m *Manager) ReassignPRAuthor(req reqres.PullRequestReassignRequest) (reqres.PullRequestReassignResponse, error) {
 	ctx := context.Background()
 
@@ -197,7 +201,7 @@ func (m *Manager) ReassignPRAuthor(req reqres.PullRequestReassignRequest) (reqre
 	if err != nil {
 		return reqres.PullRequestReassignResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	var candidates []string
 	for rows.Next() {
@@ -219,7 +223,7 @@ func (m *Manager) ReassignPRAuthor(req reqres.PullRequestReassignRequest) (reqre
 	if err != nil {
 		return reqres.PullRequestReassignResponse{}, err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	_, err = tx.ExecContext(ctx, `
 		DELETE FROM pr_reviewers WHERE pull_request_id = $1 AND reviewer_id = $2
@@ -252,7 +256,7 @@ func (m *Manager) ReassignPRAuthor(req reqres.PullRequestReassignRequest) (reqre
 	if err != nil {
 		return reqres.PullRequestReassignResponse{}, err
 	}
-	defer rows2.Close()
+	defer rows2.Close() //nolint:errcheck
 
 	for rows2.Next() {
 		var rid string

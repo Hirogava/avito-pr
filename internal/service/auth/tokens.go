@@ -1,3 +1,4 @@
+// Package auth provides functions for working with JWT tokens
 package auth
 
 import (
@@ -13,33 +14,37 @@ import (
 	"github.com/google/uuid"
 )
 
+// Секретный ключ для JWT
 var secret = os.Getenv("JWT_SECRET")
 
+// ParseToken проверяет токен на валидность
 func ParseToken(tokenString string) (*jwt.Token, error) {
 	if tokenString == "" {
 		return nil, jwt.ErrTokenMalformed
-	} else {
-		return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte(secret), nil
-		})
 	}
+
+	return jwt.Parse(tokenString, func(_ *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
 }
 
-func GenerateRefreshToken(manager *postgres.Manager, userId string) (string, error) {
-	logger.Logger.Debug("Generating refresh token", "user_id", userId)
+// GenerateRefreshToken генерирует токен для пользователя
+func GenerateRefreshToken(manager *postgres.Manager, userID string) (string, error) {
+	logger.Logger.Debug("Generating refresh token", "user_id", userID)
 
 	token := uuid.New().String()
 
-	err := manager.SaveRefreshToken(token, userId)
+	err := manager.SaveRefreshToken(token, userID)
 	if err != nil {
-		logger.Logger.Error("Failed to save refresh token", "user_id", userId, "error", err.Error())
+		logger.Logger.Error("Failed to save refresh token", "user_id", userID, "error", err.Error())
 		return "", err
 	}
 
-	logger.Logger.Debug("Refresh token generated and saved", "user_id", userId)
+	logger.Logger.Debug("Refresh token generated and saved", "user_id", userID)
 	return token, nil
 }
 
+// GenerateAccessToken генерирует токен доступа для пользователя
 func GenerateAccessToken(claims jwt.MapClaims) (string, error) {
 	logger.Logger.Debug("Generating access token", "user_id", claims["id"])
 
@@ -54,12 +59,14 @@ func GenerateAccessToken(claims jwt.MapClaims) (string, error) {
 	return accessToken, nil
 }
 
+// AddAccessTime добавляет 15 минут к текущему времени
 func AddAccessTime() int64 {
 	return time.Now().Add(15 * time.Minute).Unix()
 }
 
-func ValidateRefreshToken(manager *postgres.Manager, userId string) (authModels.RefreshToken, string, error) {
-	token, role, err := manager.GetRefreshToken(userId)
+// ValidateRefreshToken проверяет токен на валидность
+func ValidateRefreshToken(manager *postgres.Manager, userID string) (authModels.RefreshToken, string, error) {
+	token, role, err := manager.GetRefreshToken(userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return authModels.RefreshToken{}, "", jwt.ErrTokenExpired
@@ -68,18 +75,19 @@ func ValidateRefreshToken(manager *postgres.Manager, userId string) (authModels.
 	}
 
 	if time.Now().After(token.ExpiredAt) {
-		if err := manager.DeleteRefreshToken(userId, token.Token); err != nil {
+		if err := manager.DeleteRefreshToken(userID, token.Token); err != nil {
 			return authModels.RefreshToken{}, "", err
-		} else {
-			return authModels.RefreshToken{}, "", jwt.ErrTokenExpired
 		}
+
+		return authModels.RefreshToken{}, "", jwt.ErrTokenExpired
 	}
 	return token, role, nil
 }
 
+// GetClaims извлекает данные из токена
 func GetClaims(tokenString string) (jwt.MapClaims, error) {
 	claims := jwt.MapClaims{}
-	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(_ *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
 

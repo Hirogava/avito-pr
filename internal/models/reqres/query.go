@@ -1,3 +1,4 @@
+// Package reqres models for responses and requests
 package reqres
 
 // TeamGetQuery - Query параметры для /team/get.

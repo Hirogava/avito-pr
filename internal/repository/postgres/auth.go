@@ -1,3 +1,4 @@
+// Package postgres implements the repository interface for PostgreSQL.
 package postgres
 
 import (
@@ -6,21 +7,23 @@ import (
 	authModels "github.com/Hirogava/avito-pr/internal/models/auth"
 )
 
-func (manager *Manager) SaveRefreshToken(token string, userId string) error {
+// SaveRefreshToken - сохраняет refresh token в базе данных.
+func (manager *Manager) SaveRefreshToken(token string, userID string) error {
 	expiredAt := time.Now().Add(time.Hour * 24 * 7)
 
-	_, err := manager.Conn.Exec(`INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, $3)`, userId, token, expiredAt)
+	_, err := manager.Conn.Exec(`INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, $3)`, userID, token, expiredAt)
 	return err
 }
 
-func (manager *Manager) GetRefreshToken(userId string) (authModels.RefreshToken, string, error) {
+// GetRefreshToken - получает refresh token из базы данных.
+func (manager *Manager) GetRefreshToken(userID string) (authModels.RefreshToken, string, error) {
 	var token authModels.RefreshToken
 
-	if err := manager.Conn.QueryRow(`SELECT id, token, expires_at FROM sessions WHERE user_id = $1`, userId).Scan(&token.ID, &token.Token, &token.ExpiredAt); err != nil {
+	if err := manager.Conn.QueryRow(`SELECT id, token, expires_at FROM sessions WHERE user_id = $1`, userID).Scan(&token.ID, &token.Token, &token.ExpiredAt); err != nil {
 		return authModels.RefreshToken{}, "", err
 	}
 
-	role, err := manager.GetUserRoleByID(userId)
+	role, err := manager.GetUserRoleByID(userID)
 	if err != nil {
 		return authModels.RefreshToken{}, "", err
 	}
@@ -28,11 +31,12 @@ func (manager *Manager) GetRefreshToken(userId string) (authModels.RefreshToken,
 	return token, role, nil
 }
 
-func (manager *Manager) GetUserRoleByID(userId string) (string, error) {
+// GetUserRoleByID - получает роль пользователя по его ID.
+func (manager *Manager) GetUserRoleByID(userID string) (string, error) {
 	var role string
 	var isAdmin bool
 
-	if err := manager.Conn.QueryRow(`SELECT is_admin FROM users WHERE user_id = $1`, userId).Scan(&isAdmin); err != nil {
+	if err := manager.Conn.QueryRow(`SELECT is_admin FROM users WHERE user_id = $1`, userID).Scan(&isAdmin); err != nil {
 		return "", err
 	}
 
@@ -45,21 +49,24 @@ func (manager *Manager) GetUserRoleByID(userId string) (string, error) {
 	return role, nil
 }
 
-func (manager *Manager) DeleteRefreshToken(userId string, token string) error {
-	_, err := manager.Conn.Exec(`DELETE FROM sessions WHERE user_id = $1 and token = $2`, userId, token)
+// DeleteRefreshToken - удаляет refresh token из базы данных.
+func (manager *Manager) DeleteRefreshToken(userID string, token string) error {
+	_, err := manager.Conn.Exec(`DELETE FROM sessions WHERE user_id = $1 and token = $2`, userID, token)
 
 	return err
 }
 
-func (manager *Manager) UpdateRefreshToken(userId string, token string) error {
-	if _, err := manager.Conn.Exec(`UPDATE sessions SET expires_at = $1, token = $2 WHERE user_id = $3`, time.Now().Add(time.Hour*24*7), token, userId); err != nil {
+// UpdateRefreshToken - обновляет refresh token в базе данных.
+func (manager *Manager) UpdateRefreshToken(userID string, token string) error {
+	if _, err := manager.Conn.Exec(`UPDATE sessions SET expires_at = $1, token = $2 WHERE user_id = $3`, time.Now().Add(time.Hour*24*7), token, userID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (manager *Manager) SetUserStatus(userId string, isAdmin bool) error {
-	_, err := manager.Conn.Exec(`UPDATE users SET is_admin = $1 WHERE user_id = $2`, isAdmin, userId)
+// SetUserStatus - устанавливает статус пользователя в базе данных.
+func (manager *Manager) SetUserStatus(userID string, isAdmin bool) error {
+	_, err := manager.Conn.Exec(`UPDATE users SET is_admin = $1 WHERE user_id = $2`, isAdmin, userID)
 	return err
 }

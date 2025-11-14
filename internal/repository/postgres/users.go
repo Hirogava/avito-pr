@@ -1,3 +1,4 @@
+// Package postgres implements the repository interface for PostgreSQL.
 package postgres
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/Hirogava/avito-pr/internal/models/reqres"
 )
 
+// SetUserIsActive - меняет статус пользователя
 func (manager *Manager) SetUserIsActive(req reqres.UserSetIsActiveRequest) (reqres.UserResponse, error) {
 	var user reqres.UserResponse
 	err := manager.Conn.QueryRow(`UPDATE users SET is_active = $1 WHERE user_id = $2 RETURNING is_active, username, team_name, user_id`, req.IsActive, req.UserID).Scan(&user.IsActive, &user.Username, &user.TeamName, &user.UserID)
@@ -20,6 +22,7 @@ func (manager *Manager) SetUserIsActive(req reqres.UserSetIsActiveRequest) (reqr
 	return user, nil
 }
 
+// GetUsersReview - возвращает список PR, на которые назначен пользователь
 func (manager *Manager) GetUsersReview(req reqres.UsersGetReviewQuery) (reqres.PullRequestListResponse, error) {
 	var reviewList reqres.PullRequestListResponse
 	reviewList.UserID = req.UserID
@@ -37,7 +40,7 @@ func (manager *Manager) GetUsersReview(req reqres.UsersGetReviewQuery) (reqres.P
 	if err != nil {
 		return reviewList, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	for rows.Next() {
 		var pr reqres.PullRequestShortResponse
@@ -54,6 +57,7 @@ func (manager *Manager) GetUsersReview(req reqres.UsersGetReviewQuery) (reqres.P
 	return reviewList, nil
 }
 
+// GetUsers - возвращает всех пользователей
 func (manager *Manager) GetUsers() ([]reqres.UserResponse, error) {
 	rows, err := manager.Conn.Query(`
 		SELECT username, team_name, user_id, is_active FROM users
@@ -61,6 +65,7 @@ func (manager *Manager) GetUsers() ([]reqres.UserResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close() //nolint:errcheck
 
 	var users []reqres.UserResponse
 	for rows.Next() {

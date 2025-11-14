@@ -1,3 +1,4 @@
+// Package reqres models for responses and requests
 package reqres
 
 // TeamAddRequest - Запрос на создание/обновление команды.

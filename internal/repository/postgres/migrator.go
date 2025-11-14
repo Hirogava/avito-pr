@@ -1,3 +1,4 @@
+// Package postgres implements the repository interface for PostgreSQL.
 package postgres
 
 import (
@@ -6,9 +7,11 @@ import (
 	"github.com/Hirogava/avito-pr/internal/config/logger"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
+	// import file source for migrations.
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+// Migrate - миграция БД
 func (manager *Manager) Migrate() {
 	logger.Logger.Debug("Starting database migrations")
 

@@ -1,3 +1,4 @@
+// Package team provides handlers for team
 package team
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// InitTeamHandlers - инициализация обработчиков для team
 func InitTeamHandlers(r *gin.Engine, manager *postgres.Manager) {
 	team := r.Group("/team")
 	{
@@ -27,6 +29,7 @@ func InitTeamHandlers(r *gin.Engine, manager *postgres.Manager) {
 	}
 }
 
+// CreateTeam - создание команды
 func CreateTeam(c *gin.Context, manager *postgres.Manager) {
 	var req reqres.TeamAddRequest
 
@@ -36,19 +39,20 @@ func CreateTeam(c *gin.Context, manager *postgres.Manager) {
 	}
 
 	team, err := manager.CreateTeam(req)
-	switch err { 
+	switch err {
 	case nil:
 		c.JSON(http.StatusCreated, gin.H{"team": team})
 	case dbErrors.ErrorTeamAlreadyExists:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamAlreadyExists
-		error.Error.Message = dbErrors.ErrorTeamAlreadyExists.Error()
-		c.JSON(http.StatusBadRequest, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamAlreadyExists
+		errResp.Error.Message = dbErrors.ErrorTeamAlreadyExists.Error()
+		c.JSON(http.StatusBadRequest, errResp)
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }
 
+// GetTeam - получение команды
 func GetTeam(c *gin.Context, manager *postgres.Manager) {
 	var req reqres.TeamGetQuery
 
@@ -63,10 +67,10 @@ func GetTeam(c *gin.Context, manager *postgres.Manager) {
 	case nil:
 		c.JSON(http.StatusOK, team)
 	case dbErrors.ErrorTeamNotFound:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamNotFound
-		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
-		c.JSON(http.StatusNotFound, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamNotFound
+		errResp.Error.Message = dbErrors.ErrorTeamNotFound.Error()
+		c.JSON(http.StatusNotFound, errResp)
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}

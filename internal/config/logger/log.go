@@ -1,3 +1,4 @@
+// Package logger provides a logger initialization function.
 package logger
 
 import (
@@ -9,8 +10,10 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+// Logger - глобальный логгер
 var Logger *logrus.Logger
 
+// LogInit - инициализация логгера и его настройки
 func LogInit() {
 	Logger = logrus.New()
 

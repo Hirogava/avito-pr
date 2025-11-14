@@ -1,3 +1,4 @@
+// Package auth provides handlers for auth
 package auth
 
 import (
@@ -14,6 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// InitAuthHandlers - инициализация роутов для авторизации
 func InitAuthHandlers(r *gin.Engine, manager *postgres.Manager) {
 	v1 := r.Group("/auth")
 	{
@@ -31,6 +33,7 @@ func InitAuthHandlers(r *gin.Engine, manager *postgres.Manager) {
 	}
 }
 
+// Admin - авторизация роли пользователя
 func Admin(c *gin.Context, manager *postgres.Manager) {
 	logger.Logger.Info("Login attempt", "ip", c.ClientIP())
 
@@ -46,7 +49,7 @@ func Admin(c *gin.Context, manager *postgres.Manager) {
 
 	err := manager.SetUserStatus(req.UserID, req.IsAdmin)
 	if err != nil {
-		logger.Logger.Error("Failed to set user admin status",  "ip", c.ClientIP(), "error", err.Error())
+		logger.Logger.Error("Failed to set user admin status", "ip", c.ClientIP(), "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -83,8 +86,8 @@ func Admin(c *gin.Context, manager *postgres.Manager) {
 	}
 
 	claims := jwt.MapClaims{
-		"id":  req.UserID,
-		"exp": tokens.AddAccessTime(),
+		"id":   req.UserID,
+		"exp":  tokens.AddAccessTime(),
 		"role": role,
 	}
 
@@ -99,33 +102,34 @@ func Admin(c *gin.Context, manager *postgres.Manager) {
 	logger.Logger.Info("Login successful", "user_id", req.UserID, "ip", c.ClientIP())
 
 	c.JSON(http.StatusOK, gin.H{
-		"userID": req.UserID,
-		"role":   role,
+		"userID":        req.UserID,
+		"role":          role,
 		"access_token":  accessToken,
 		"refresh_token": token.Token,
 	})
 }
 
+// RefreshToken - обновление токена
 func RefreshToken(c *gin.Context, manager *postgres.Manager) {
-	userId := c.GetString("userID")
-	logger.Logger.Info("Token refresh attempt", "user_id", userId, "ip", c.ClientIP())
+	userID := c.GetString("userID")
+	logger.Logger.Info("Token refresh attempt", "user_id", userID, "ip", c.ClientIP())
 
 	var t authModels.Tokens
 	if err := c.ShouldBindJSON(&t); err != nil {
-		logger.Logger.Warn("Invalid refresh token request", "user_id", userId, "ip", c.ClientIP(), "error", err.Error())
+		logger.Logger.Warn("Invalid refresh token request", "user_id", userID, "ip", c.ClientIP(), "error", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	refreshToken, role, err := tokens.ValidateRefreshToken(manager, userId)
+	refreshToken, role, err := tokens.ValidateRefreshToken(manager, userID)
 	if err != nil {
 		switch err {
 		case jwt.ErrTokenExpired:
-			logger.Logger.Warn("Refresh token expired", "user_id", userId, "ip", c.ClientIP())
+			logger.Logger.Warn("Refresh token expired", "user_id", userID, "ip", c.ClientIP())
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token expired"})
 			return
 		default:
-			logger.Logger.Error("Failed to validate refresh token", "user_id", userId, "ip", c.ClientIP(), "error", err.Error())
+			logger.Logger.Error("Failed to validate refresh token", "user_id", userID, "ip", c.ClientIP(), "error", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -133,52 +137,21 @@ func RefreshToken(c *gin.Context, manager *postgres.Manager) {
 	t.RefreshToken = refreshToken.Token
 
 	claims := jwt.MapClaims{
-		"id":  userId,
-		"exp": tokens.AddAccessTime(),
+		"id":   userID,
+		"exp":  tokens.AddAccessTime(),
 		"role": role,
 	}
 
 	if t.AccessToken, err = tokens.GenerateAccessToken(claims); err != nil {
-		logger.Logger.Error("Failed to generate new access token", "user_id", userId, "ip", c.ClientIP(), "error", err.Error())
+		logger.Logger.Error("Failed to generate new access token", "user_id", userID, "ip", c.ClientIP(), "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	logger.Logger.Info("Token refresh successful", "user_id", userId, "ip", c.ClientIP())
+	logger.Logger.Info("Token refresh successful", "user_id", userID, "ip", c.ClientIP())
 
 	c.JSON(http.StatusOK, gin.H{
 		"access_token":  t.AccessToken,
 		"refresh_token": t.RefreshToken,
-	})
-}
-
-func Logout(c *gin.Context, manager *postgres.Manager) {
-	userId := c.GetString("userID")
-	logger.Logger.Info("Logout attempt", "user_id", userId, "ip", c.ClientIP())
-
-	token, _, err := tokens.ValidateRefreshToken(manager, userId)
-	if err != nil {
-		switch err {
-		case jwt.ErrTokenExpired:
-			logger.Logger.Warn("Refresh token expired during logout", "user_id", userId, "ip", c.ClientIP())
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token expired"})
-			return
-		default:
-			logger.Logger.Error("Failed to validate refresh token during logout", "user_id", userId, "ip", c.ClientIP(), "error", err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-	}
-
-	if err := manager.DeleteRefreshToken(userId, token.Token); err != nil {
-		logger.Logger.Error("Failed to delete refresh token", "user_id", userId, "ip", c.ClientIP(), "error", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	logger.Logger.Info("Logout successful", "user_id", userId, "ip", c.ClientIP())
-
-	c.JSON(http.StatusOK, gin.H{
-		"logout": "success",
 	})
 }

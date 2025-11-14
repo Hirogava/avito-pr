@@ -1,3 +1,4 @@
+// Package http contains HTTP handlers for the game service.
 package http
 
 import (
@@ -14,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateRouter - создание роутера
 func CreateRouter(manager *postgres.Manager) *gin.Engine {
 	logger.Logger.Debug("Creating HTTP router")
 

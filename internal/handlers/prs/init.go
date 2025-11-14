@@ -1,3 +1,4 @@
+// Package prs provides handlers for pull requests
 package prs
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// InitPRSHandlers - инициализация обработчиков для pull requests
 func InitPRSHandlers(r *gin.Engine, manager *postgres.Manager) {
 	secureUsers := r.Group("/pullRequest")
 	secureUsers.Use(middleware.AuthMiddleware())
@@ -26,14 +28,15 @@ func InitPRSHandlers(r *gin.Engine, manager *postgres.Manager) {
 	}
 }
 
+// CreatePR - создание pull request
 func CreatePR(c *gin.Context, manager *postgres.Manager) {
 	role, exists := c.Get("role")
 	if !exists || role != "admin" {
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamNotFound
-		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamNotFound
+		errResp.Error.Message = dbErrors.ErrorTeamNotFound.Error()
 
-		c.JSON(http.StatusForbidden, error)
+		c.JSON(http.StatusForbidden, errResp)
 		return
 	}
 
@@ -49,28 +52,29 @@ func CreatePR(c *gin.Context, manager *postgres.Manager) {
 	case nil:
 		c.JSON(http.StatusCreated, gin.H{"pull_request": pr})
 	case dbErrors.ErrorUserNotFound:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamNotFound
-		error.Error.Message = dbErrors.ErrorUserNotFound.Error()
-		c.JSON(http.StatusNotFound, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamNotFound
+		errResp.Error.Message = dbErrors.ErrorUserNotFound.Error()
+		c.JSON(http.StatusNotFound, errResp)
 	case dbErrors.ErrorPRAlreadyExists:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodePRExists
-		error.Error.Message = dbErrors.ErrorPRAlreadyExists.Error()
-		c.JSON(http.StatusBadRequest, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodePRExists
+		errResp.Error.Message = dbErrors.ErrorPRAlreadyExists.Error()
+		c.JSON(http.StatusBadRequest, errResp)
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }
 
+// MergePR - слияние pull request
 func MergePR(c *gin.Context, manager *postgres.Manager) {
 	role, exists := c.Get("role")
 	if !exists || role != "admin" {
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamNotFound
-		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamNotFound
+		errResp.Error.Message = dbErrors.ErrorTeamNotFound.Error()
 
-		c.JSON(http.StatusForbidden, error)
+		c.JSON(http.StatusForbidden, errResp)
 		return
 	}
 
@@ -86,23 +90,24 @@ func MergePR(c *gin.Context, manager *postgres.Manager) {
 	case nil:
 		c.JSON(http.StatusCreated, gin.H{"pull_request": pr})
 	case dbErrors.ErrorPRSNotFound:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamNotFound
-		error.Error.Message = dbErrors.ErrorPRSNotFound.Error()
-		c.JSON(http.StatusNotFound, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamNotFound
+		errResp.Error.Message = dbErrors.ErrorPRSNotFound.Error()
+		c.JSON(http.StatusNotFound, errResp)
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }
 
+// ReassignAuthor - смена автора pull request
 func ReassignAuthor(c *gin.Context, manager *postgres.Manager) {
 	role, exists := c.Get("role")
 	if !exists || role != "admin" {
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamNotFound
-		error.Error.Message = dbErrors.ErrorTeamNotFound.Error()
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamNotFound
+		errResp.Error.Message = dbErrors.ErrorTeamNotFound.Error()
 
-		c.JSON(http.StatusForbidden, error)
+		c.JSON(http.StatusForbidden, errResp)
 		return
 	}
 
@@ -118,25 +123,25 @@ func ReassignAuthor(c *gin.Context, manager *postgres.Manager) {
 	case nil:
 		c.JSON(http.StatusCreated, gin.H{"pull_request": pr})
 	case dbErrors.ErrorUserNotFound:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeTeamNotFound
-		error.Error.Message = dbErrors.ErrorUserNotFound.Error()
-		c.JSON(http.StatusNotFound, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeTeamNotFound
+		errResp.Error.Message = dbErrors.ErrorUserNotFound.Error()
+		c.JSON(http.StatusNotFound, errResp)
 	case dbErrors.ErrorNoCandidateForReviewer:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeNoCandidate
-		error.Error.Message = dbErrors.ErrorNoCandidateForReviewer.Error()
-		c.JSON(http.StatusBadRequest, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeNoCandidate
+		errResp.Error.Message = dbErrors.ErrorNoCandidateForReviewer.Error()
+		c.JSON(http.StatusBadRequest, errResp)
 	case dbErrors.ErrorPRMerged:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodePRMerged
-		error.Error.Message = dbErrors.ErrorPRMerged.Error()
-		c.JSON(http.StatusBadRequest, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodePRMerged
+		errResp.Error.Message = dbErrors.ErrorPRMerged.Error()
+		c.JSON(http.StatusBadRequest, errResp)
 	case dbErrors.ErrorReviewerNotAssigned:
-		var error reqres.ErrorResponse
-		error.Error.Code = dbErrors.CodeNotAssigned
-		error.Error.Message = dbErrors.ErrorReviewerNotAssigned.Error()
-		c.JSON(http.StatusBadRequest, error)
+		var errResp reqres.ErrorResponse
+		errResp.Error.Code = dbErrors.CodeNotAssigned
+		errResp.Error.Message = dbErrors.ErrorReviewerNotAssigned.Error()
+		c.JSON(http.StatusBadRequest, errResp)
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}

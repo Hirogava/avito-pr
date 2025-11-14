@@ -9,6 +9,9 @@ BUILD_PATH := ./bin
 MIGRATIONS_PATH := ./internal/repository/postgres/migrations
 GO_VERSION := 1.24.0
 
+lint:
+	golangci-lint run ./...
+
 build:
 	@echo "Building $(APP_NAME)..."
 	@go build -o $(BUILD_PATH)/$(APP_NAME) $(CMD_PATH)
