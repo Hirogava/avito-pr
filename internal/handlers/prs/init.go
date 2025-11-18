@@ -88,7 +88,7 @@ func MergePR(c *gin.Context, manager *postgres.Manager) {
 	pr, err := manager.MergePullRequest(req)
 	switch err {
 	case nil:
-		c.JSON(http.StatusCreated, gin.H{"pull_request": pr})
+		c.JSON(http.StatusOK, gin.H{"pull_request": pr})
 	case dbErrors.ErrorPRSNotFound:
 		var errResp reqres.ErrorResponse
 		errResp.Error.Code = dbErrors.CodeTeamNotFound
@@ -121,7 +121,7 @@ func ReassignAuthor(c *gin.Context, manager *postgres.Manager) {
 	pr, err := manager.ReassignPRAuthor(req)
 	switch err {
 	case nil:
-		c.JSON(http.StatusCreated, gin.H{"pull_request": pr})
+		c.JSON(http.StatusOK, gin.H{"pull_request": pr})
 	case dbErrors.ErrorUserNotFound:
 		var errResp reqres.ErrorResponse
 		errResp.Error.Code = dbErrors.CodeTeamNotFound
